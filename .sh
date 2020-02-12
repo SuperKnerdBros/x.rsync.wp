@@ -4,17 +4,41 @@ while getopts d:i: option
 do
   case "${option}"
     in
-    d) DOMAIN=${OPTARG};;
-    i) INSTANCE=${OPTARG};;
-  esac
-done
+    d) X_DOMAIN=${OPTARG};;
+    i) X_INSTANCE=${OPTARG};;
+    k) X_KEY=${OPTARG};;
+    u) X_USR=${OPTARG};;
+    c) X_CONTENT=${OPTARG};;
+  esac 
+done 
+
+required(){
+  VAR="X_$1" 
+  if [[ ${!VAR} = "" ]]
+  then
+    echo "$1 Required"
+    exit
+  fi
+}
+
+# GET REQUIRED VARS
+required DOMAIN 
+required INSTANCE 
+required KEY
+required USR 
+required CONTENT 
 
 # KEYS & PATHS
-KEY_AWS_MM="/home/ubuntu/.ssh/mm-tuc-dt-8200-xp-key.pem"
-UPLOADS_DIR="/var/www/$DOMAIN/public/content/uploads/"
+KEY="/home/$X_USR/.ssh/$X_KEY"
+CONTENT="/var/www/$X_DOMAIN/public/$X_CONTENT"
+UPLOADS="$CONTENT/uploads/"
+PLUGINS="$CONTENT/plugins/"
+THEMES="$CONTENT/themes/"
 
-CMD1="ssh-keyscan  $INSTANCE >> ~/.ssh/known_hosts"
-CMD2="sudo rsync -r -a -v -e 'ssh -i $KEY_AWS_MM' ubuntu@$INSTANCE:$UPLOADS_DIR $UPLOADS_DIR"
-CMD3="ssh-keygen -R $INSTANCE"
+CMD1="ssh-keyscan  $X_INSTANCE >> ~/.ssh/known_hosts"
+CMD2="sudo rsync -r -a -v -e 'ssh -i $KEY' $X_USR@$X_INSTANCE:$UPLOADS $UPLOADS"
+CMD3="sudo rsync -r -a -v -e 'ssh -i $KEY' $X_USR@$X_INSTANCE:$PLUGINS $PLUGINS"
+CMD4="sudo rsync -r -a -v -e 'ssh -i $KEY' $X_USR@$X_INSTANCE:$THEMES $THEMES"
+CMDX="ssh-keygen -R $X_INSTANCE"
 
-sudo runuser -l root -c "${CMD1}; ${CMD2}; ${CMD3};" 
+sudo runuser -l root -c "${CMD1}; ${CMD2}; ${CMD3}; ${CMD4}; ${CMDX};" 
