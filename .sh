@@ -21,6 +21,12 @@ required(){
   fi
 }
 
+function xSync(){
+  RSYNC="sudo rsync -r -a -v -e 'ssh -i $KEY'"
+  sudo runuser -l root -c "${RSYNC} ${1}:${2} ${2}" 
+  sudo runuser -l root -c "${RSYNC} ${2} ${1}:${2}" 
+}
+
 # GET REQUIRED VARS
 required DOMAIN 
 required INSTANCE 
@@ -36,12 +42,10 @@ PLUGINS="$CONTENT/plugins/"
 THEMES="$CONTENT/themes/"
 WFLOGS="$CONTENT/wflogs/"
 
-CMD1="ssh-keyscan  $X_INSTANCE >> ~/.ssh/known_hosts"
-RSYNC="sudo rsync -r -a -v -e 'ssh -i $KEY'"
-CMD2="$RSYNC $X_USR@$X_INSTANCE:$UPLOADS $UPLOADS"
-CMD3="$RSYNC $X_USR@$X_INSTANCE:$PLUGINS $PLUGINS"
-CMD4="$RSYNC $X_USR@$X_INSTANCE:$THEMES $THEMES"
-CMD5="$RSYNC $X_USR@$X_INSTANCE:$WFLOGS $WFLOGS"
-CMDX="ssh-keygen -R $X_INSTANCE"
-
-sudo runuser -l root -c "${CMD1}; ${CMD2}; ${CMD3}; ${CMD4}; ${CMD5}; ${CMDX};" 
+# RUN CMDS
+sudo runuser -l root -c "ssh-keyscan  $X_INSTANCE >> ~/.ssh/known_hosts" 
+xSync "$X_USR@$X_INSTANCE" "$UPLOADS"
+xSync "$X_USR@$X_INSTANCE" "$PLUGINS"
+xSync "$X_USR@$X_INSTANCE" "$THEMES"
+xSync "$X_USR@$X_INSTANCE" "$WFLOGS"
+sudo runuser -l root -c "ssh-keygen -R $X_INSTANCE" 
