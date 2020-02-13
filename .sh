@@ -22,7 +22,8 @@ required(){
 }
 
 function xSync(){
-  RSYNC="sudo rsync -r -a -v -e 'ssh -i $KEY'"
+
+  RSYNC="sudo rsync -rltDvze 'ssh -i $KEY'"
   sudo runuser -l root -c "${RSYNC} ${1}:${2} ${2}" 
   sudo runuser -l root -c "${RSYNC} ${2} ${1}:${2}" 
 }
